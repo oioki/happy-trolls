@@ -184,7 +184,7 @@ class Balancer
     }
 
     /**
-     * Is exists video in acche
+     * Is exists video in cache
      *
      * @param $cacheId
      * @param $videoId

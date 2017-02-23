@@ -56,7 +56,7 @@ class Calculator
         $score = 0;
         $requests = 0;
 
-        foreach ($this->endpoints as $endpoint) {
+        foreach ($this->endpoints as $endpointId => $endpoint) {
             $latencyDataCenter = $endpoint['latencyDataCenter'];
             foreach ($endpoint['requests'] as $videoId => $requestsCount) {
                 $latencyToCache = $endpoint['latencyDataCenter'];
@@ -68,13 +68,16 @@ class Calculator
                         $latencyToCache = $endpoint['cache'][$cacheId];
                     }
                 }
+                $calculatedScore = $requestsCount * $this->calculatedSavedTime($latencyDataCenter, $latencyToCache);
 
-                $score += $requestsCount * $this->calculatedSavedTime($latencyDataCenter, $latencyToCache);
+                if ($calculatedScore > 0) {
+                    $score += $calculatedScore;
+                }
 
                 $requests += $requestsCount;
             }
         }
 
-        return round($score / $requests * 1000, 2);
+        return round($score / $requests, 2) * 1000;
     }
 }
