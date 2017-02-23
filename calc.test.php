@@ -5,8 +5,8 @@ require_once __DIR__ . '/calc.php';
 $endpoints = [
     [
         'latencyDataCenter' => 1000,
-        'cache' => [100, 200, 300], // cacheId => latency
-        'requests' => [3 => 1500, 4 => 500, 1 => 100], // videoId => requests count
+        'cache' => [100, 300, 200], // cacheId => latency
+        'requests' => [3 => 1500, 4 => 500, 1 => 1000], // videoId => requests count
     ],
     [
         'latencyDataCenter' => 500,
@@ -23,6 +23,5 @@ $result = [
 
 $calc = new Calculator($endpoints, $result);
 
-var_dump($calc->getScore());
-
-assert($calc->getScore() == 462.5, 'Wrong result');
+$expected = 462.5 * 1000;
+assert($calc->getScore() == $expected, 'Wrong result');
