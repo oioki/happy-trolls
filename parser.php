@@ -1,6 +1,6 @@
 <?php
 
-function getVideosEndpoints($filename = "me_at_the_zoo.in")
+function getData($filename = "me_at_the_zoo.in")
 {
     $rows = file(__DIR__ . '/' . $filename);
     
@@ -9,7 +9,7 @@ function getVideosEndpoints($filename = "me_at_the_zoo.in")
         $arr[] = explode(' ', $rawRow);
     }
     
-    list($V,$E,$R,$C,$X) = $arr[0];
+    list($V,$E,$R,$cacheCount,$cacheSize) = $arr[0];
     $videos = array_map('intval',$arr[1]);
     
     $endpoints = array();
@@ -43,7 +43,7 @@ function getVideosEndpoints($filename = "me_at_the_zoo.in")
         $currentRow++;
     }
 
-    return array('endpoints' => $endpoints, 'videos' => $videos);
+    return array('endpoints' => $endpoints, 'videos' => $videos, 'cacheCount' => (int) $cacheCount, 'cacheSize' => (int) $cacheSize);
 }
 
-var_dump(getVideosEndpoints());
+var_dump(getData());
