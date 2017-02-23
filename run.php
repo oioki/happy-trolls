@@ -1,5 +1,7 @@
 <?php
 
+ini_set('memory_limit','6000M');
+
 require_once __DIR__ . '/parser.php';
 require_once __DIR__ . '/result.php';
 require_once __DIR__ . '/calc.php';
