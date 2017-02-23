@@ -27,7 +27,9 @@ function getData($filename = "me_at_the_zoo.in")
         $newendpoint = array('latencyDataCenter' => $latencyDataCenter, 'cache' => array());
         for ($j=0; $j<$countCacheConnections; $j++)
         {
-            $newendpoint['cache'][$arr[$currentRow+$j][0]] = (int) $arr[$currentRow+$j][1];
+            $cacheId = $arr[$currentRow+$j][0];
+
+            $newendpoint['cache'][$cacheId] = (int) $arr[$currentRow+$j][1];
         }
         $endpoints[$endpointId] = $newendpoint;
 
@@ -43,5 +45,5 @@ function getData($filename = "me_at_the_zoo.in")
         $currentRow++;
     }
 
-    return array('endpoints' => $endpoints, 'videos' => $videos, 'cacheCount' => (int) $cacheCount, 'cacheCapacity' => (int) $cacheCapacity);
+    return array($endpoints, $videos, (int) $cacheCount, (int) $cacheCapacity);
 }

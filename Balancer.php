@@ -79,16 +79,18 @@ class Balancer
         $videoIdStart = 0;
         $result = [];
 
-        for ($cacheId = 0; $cacheId < $this->cacheCount; ++$cacheId) {
+        for ($cacheId = 0; $cacheId < $this->cacheCount; $cacheId++) {
             $freeCapacity = $this->cacheCapacity;
 
             for ($videoId = $videoIdStart; $videoId < count($videos); ++$videoId) {
                 if ($freeCapacity >= $videos[$videoId]) {
                     $result[$cacheId][] = $videoId;
                     $freeCapacity -= $videos[$videoId];
+                } else {
+                    break;
                 }
             }
-            $videoIdStart += $videoId;
+            $videoIdStart = $videoId;
         }
 
         $this->result = $result;

@@ -8,9 +8,9 @@ require_once __DIR__ . '/Balancer.php';
 $filename = __DIR__ . '/' . $argv[1];
 $algo = $argv[2];
 
-list($endpoints, $videos, $cacheSize, $cacheCount) = getData($filename);
+list($endpoints, $videos, $cacheCount, $cacheCapacity) = getData($filename);
 
-$balancer = new Balancer($cacheCount, $cacheSize, $videos, $endpoints);
+$balancer = new Balancer($cacheCount, $cacheCapacity, $videos, $endpoints);
 $balancer->$algo();
 $result = $balancer->getResult();
 
