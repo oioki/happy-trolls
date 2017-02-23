@@ -43,5 +43,5 @@ function getData($filename = "me_at_the_zoo.in")
         $currentRow++;
     }
 
-    return array('endpoints' => $endpoints, 'videos' => $videos, 'cacheCount' => (int) $cacheCount, 'cacheCapacity' => (int) $cacheCapacity);
+    return array($endpoints, $videos, (int) $cacheCount, (int) $cacheCapacity);
 }
