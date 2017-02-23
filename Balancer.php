@@ -13,7 +13,7 @@ class Balancer
     protected $videoList = [];
 
     /**
-     * cache => latency to cache
+     * Endpoint format:
      *
      * // endpointId
      * 0 =>[
@@ -40,11 +40,30 @@ class Balancer
      */
     protected $cacheCapacity;
 
+    /**
+     * Result format
+     *
+     * // cacheID => [videoID]
+     *
+     * [  => [1, 2], 1 => [2, 4]]
+     *
+     * @var array
+     */
+    protected $result = [];
+
     public function __construct($cacheCount, $cacheCapacity, $videoList, $endPointList)
     {
         $this->cacheCount = $cacheCount;
         $this->cacheCapacity = $cacheCapacity;
         $this->videoList = $videoList;
         $this->endPointList = $endPointList;
+    }
+
+    /**
+     * @return array
+     */
+    public function getResult()
+    {
+        return $this->result;
     }
 }
