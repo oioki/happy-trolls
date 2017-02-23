@@ -13,9 +13,14 @@ class Balancer
     protected $videoList = [];
 
     /**
-     * @TODO
+     * cache => latency to cache
      *
-     * 0 =>['latency', 'requests' => ['video' => ]]
+     * // endpointId
+     * 0 =>[
+     *   'latencyDataCenter' => 1,
+     *   'cache' => [0 => 50, 1 => 100]], // cacheId => latency
+     *   'requests' => [0 => 1000, 1 => 500] // videoId => requests count
+     * ]
      *
      * @var array
      */
