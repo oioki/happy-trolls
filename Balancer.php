@@ -114,6 +114,63 @@ class Balancer
     }
 
     /**
+     * I like watch it
+     */
+    public function mostPopularVideos()
+    {
+        $videos = $this->videoList;
+        $endpoints = $this->endPointList;
+
+        $videoRanking = [];
+        $cacheRanking = [];
+
+        foreach ($endpoints as $endpointId => $endpointData) {
+            $endpointVideos = $endpointData['requests'];
+            foreach ($endpointVideos as $videoId => $requestsCount) {
+                if (!isset($videoRanking[$videoId])) {
+                    $videoRanking[$videoId] = 0;
+                }
+
+                $videoRanking[$videoId] += $requestsCount;
+            }
+
+            $endpointCaches = $endpointData['cache'];
+
+            foreach ($endpointCaches as $cacheId => $latency) {
+                if (!isset($endpointCaches[$cacheId])) {
+                    $cacheRanking[$cacheId] = 0;
+                }
+
+                $cacheRanking[$cacheId] += $latency;
+            }
+        }
+
+        arsort($videoRanking);
+        arsort($cacheRanking);
+
+        $result = [];
+
+        $cacheFreeCapacity = [];
+        foreach ($cacheRanking as $cacheId => $rank) {
+            $cacheFreeCapacity[$cacheId] = $this->cacheCapacity;
+        }
+
+        foreach ($videoRanking as $videoId => $videoRank) {
+            foreach ($cacheRanking as $cacheId => $cacheRank) {
+                if ($cacheFreeCapacity[$cacheId] >= $videos[$videoId]) {
+                    $result[$cacheId][] = $videoId;
+
+                    $cacheFreeCapacity[$cacheId] -= $videos[$videoId];
+                } else {
+                    break;
+                }
+            }
+        }
+
+        $this->result = $result;
+    }
+
+    /**
      * @return array
      */
     public function getResult()
