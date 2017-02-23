@@ -58,6 +58,18 @@ class Balancer
         $this->endPointList = $endPointList;
     }
 
+    // stub
+    public function none()
+    {}
+
+    public function sample()
+    {
+      $this->result = [
+        2 => [3,4,5],
+        4 => [5858],
+      ];
+    }
+
     /**
      * @return array
      */
