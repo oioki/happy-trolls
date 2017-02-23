@@ -27,14 +27,28 @@ class BasicPushing extends Balancer
     }
 }
 
-$data = getData(ME_AT_ZOO);
+$files = [
+    VIDEOS_WORTH_SPREADING,
+    KITTENS,
+    ME_AT_ZOO,
+    TRENDING_TODAY,
+];
 
-//$cacheCount, $cacheCapacity, $videoList, $endPointList
-$balancer = new BasicPushing(
-    $data['cacheCount'],
-    $data['cacheCapacity'],
-    $data['videos'],
-    $data['endpoints']
-);
+$filesResults = [];
 
-$balancer->calculate();
+foreach ($files as $file) {
+    $data = getData(ME_AT_ZOO);
+
+    //$cacheCount, $cacheCapacity, $videoList, $endPointList
+    $balancer = new BasicPushing(
+        $data['cacheCount'],
+        $data['cacheCapacity'],
+        $data['videos'],
+        $data['endpoints']
+    );
+
+    $balancer->calculate();
+
+    $filesResults[$file] = $balancer->getResult();
+}
+
