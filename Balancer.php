@@ -70,6 +70,23 @@ class Balancer
       ];
     }
 
+    public function pairs()
+    {
+      $pairs = [];
+      foreach ($this->endPointList as $eID => $e) {
+        foreach ($e['requests'] as $vID => $num) {
+          foreach ($e['cache'] as $cID => $lat) {
+            $key = $cID . ':' . $vID;
+            if (!array_key_exists($key, $pairs)) {
+              $pairs[$key] = 0;
+            }
+            $pairs[$key] += $num;
+          }
+        }
+      }
+      var_dump($pairs);
+    }
+
     /**
      * Push The Tempo
      */
