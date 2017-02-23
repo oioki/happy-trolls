@@ -87,14 +87,14 @@ class Balancer
           }
         }
       }
-      usort($pairs, function($a, $b) {
+      uasort($pairs, function($a, $b) {
         if ($a == $b) {
           return 0;
         }
         return $a < $b ? 1 : -1;
       });
       foreach ($pairs as $key => $pair) {
-        list($cID, $vID) = explode(',', $key);
+        list($cID, $vID) = explode(':', $key);
         if (!$this->exists($cID, $vID) && $this->isOk($cID, $vID)) {
           $this->add($cID, $vID);
         }
