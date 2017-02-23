@@ -50,12 +50,15 @@ class Balancer
      */
     protected $result = [];
 
+    protected $cacheList = [];
+
     public function __construct($cacheCount, $cacheCapacity, $videoList, $endPointList)
     {
         $this->cacheCount = $cacheCount;
         $this->cacheCapacity = $cacheCapacity;
         $this->videoList = $videoList;
         $this->endPointList = $endPointList;
+        $this->cacheList = array_fill(0, $this->cacheCount, $this->cacheCapacity);
     }
 
     // stub
@@ -111,6 +114,63 @@ class Balancer
         }
 
         $this->result = $result;
+    }
+
+    /**
+     * @param $cacheId
+     * @param $videoId
+     * @return bool
+     */
+    public function isOk($cacheId, $videoId)
+    {
+        return $this->cacheList[$cacheId] >= $this->videoList[$videoId];
+    }
+
+    /**
+     * Add video to cache
+     *
+     * @param $cacheId
+     * @param $videoId
+     */
+    public function add($cacheId, $videoId)
+    {
+        $this->cacheList[$cacheId] -= $this->videoList[$videoId];
+
+        if (!array_key_exists($cacheId, $this->result)) {
+            $this->result[$cacheId] = [];
+        }
+        $this->result[$cacheId][] = $videoId;
+    }
+
+    /**
+     * Is exists video in acche
+     *
+     * @param $cacheId
+     * @param $videoId
+     * @return bool
+     */
+    public function exists($cacheId, $videoId)
+    {
+        return in_array($videoId, $this->cacheList[$cacheId]);
+    }
+
+    /**
+     * Validate result caches
+     *
+     * @return bool
+     * @throws \Exception
+     */
+    public function validate()
+    {
+        $oversizesCacheList = array_filter($this->cacheList, function($cacheSize){
+            return $cacheSize < 0;
+        });
+
+        if ($oversizesCacheList) {
+            throw new Exception('Oversized caches: ' . implode(',', $oversizesCacheList));
+        }
+
+        return true;
     }
 
     /**
