@@ -162,7 +162,7 @@ class Balancer
      */
     public function exists($cacheId, $videoId)
     {
-        return in_array($videoId, $this->cacheList[$cacheId]);
+        return array_key_exists($cacheId, $this->result) && in_array($videoId, $this->result[$cacheId]);
     }
 
     /**
