@@ -50,12 +50,15 @@ class Balancer
      */
     protected $result = [];
 
+    protected $cacheList = [];
+
     public function __construct($cacheCount, $cacheCapacity, $videoList, $endPointList)
     {
         $this->cacheCount = $cacheCount;
         $this->cacheCapacity = $cacheCapacity;
         $this->videoList = $videoList;
         $this->endPointList = $endPointList;
+        $this->cacheList = array_fill(0, $this->cacheCount, $this->cacheCapacity);
     }
 
     // stub
@@ -84,7 +87,18 @@ class Balancer
           }
         }
       }
-      var_dump($pairs);
+      uasort($pairs, function($a, $b) {
+        if ($a == $b) {
+          return 0;
+        }
+        return $a < $b ? 1 : -1;
+      });
+      foreach ($pairs as $key => $pair) {
+        list($cID, $vID) = explode(':', $key);
+        if (!$this->exists($cID, $vID) && $this->isOk($cID, $vID)) {
+          $this->add($cID, $vID);
+        }
+      }
     }
 
     /**
@@ -168,6 +182,221 @@ class Balancer
         }
 
         $this->result = $result;
+    }
+
+    /**
+     * @param $cacheId
+     * @param $videoId
+     * @return bool
+     */
+    public function isOk($cacheId, $videoId)
+    {
+        return $this->cacheList[$cacheId] >= $this->videoList[$videoId];
+    }
+
+    /**
+     * Add video to cache
+     *
+     * @param $cacheId
+     * @param $videoId
+     */
+    public function add($cacheId, $videoId)
+    {
+        $this->cacheList[$cacheId] -= $this->videoList[$videoId];
+
+        if (!array_key_exists($cacheId, $this->result)) {
+            $this->result[$cacheId] = [];
+        }
+        $this->result[$cacheId][] = $videoId;
+    }
+
+    /**
+     * Is exists video in acche
+     *
+     * @param $cacheId
+     * @param $videoId
+     * @return bool
+     */
+    public function exists($cacheId, $videoId)
+    {
+        return array_key_exists($cacheId, $this->result) && in_array($videoId, $this->result[$cacheId]);
+    }
+
+    /**
+     * Validate result caches
+     *
+     * @return bool
+     * @throws \Exception
+     */
+    public function validate()
+    {
+        $oversizesCacheList = array_filter($this->cacheList, function($cacheSize){
+            return $cacheSize < 0;
+        });
+
+        if ($oversizesCacheList) {
+            throw new Exception('Oversized caches: ' . implode(',', $oversizesCacheList));
+        }
+
+        return true;
+    }
+
+    /**
+     * I want this video
+     */
+    public function videoAllocationMethod()
+    {
+        $result = [];
+        $cacheCapacity = [];
+        for ($i = 0; $i < $this->cacheCount; ++$i) {
+            $cacheCapacity[$i] = $this->cacheCapacity;
+        }
+
+        // TODO make rank not by requests
+        $videosAvg = $this->getVideosAvgRequest();
+
+        $rankedVideos = $this->getMostPopularVideos();
+        $videoSizes = $this->videoList;
+
+        $lostVideos = [];
+
+        $endVideos = [];
+        foreach ($rankedVideos as $videoId => $rank) {
+            $endpointIds = $this->getEndpointIdsByVideoId($videoId);
+
+            foreach ($endpointIds as $endpointId) {
+                $cacheId = $this->getCacheIdByByEndpointIdAndVideoId(
+                    $endpointId,
+                    $videoId,
+                    $cacheCapacity,
+                    $videosAvg[$videoId],
+                    $endVideos
+                );
+
+                if ($cacheId) {
+                    if (!isset($result[$cacheId])) {
+                        $result[$cacheId] = [];
+                    }
+
+                    if (!in_array($videoId, $result[$cacheId])) {
+                        $result[$cacheId][] = $videoId;
+                        $cacheCapacity[$cacheId] -= $videoSizes[$videoId];
+                        $endVideos[$endpointId][] = $videoId;
+                    }
+                }
+//                else {
+//                    if (!in_array($videoId, $lostVideos)) {
+//                        $lostVideos[] = $videoId;
+//                    }
+//                }
+            }
+        }
+
+        arsort($cacheCapacity);
+
+        $this->result = $result;
+    }
+
+    protected function getCacheIdByByEndpointIdAndVideoId($endpointId, $videoId, $cacheCapacity, $videoAvg, $endVideos)
+    {
+        $endpoints = $this->endPointList;
+        $caches = $endpoints[$endpointId]['cache'];
+
+        $videoRequestByEndpointId = $endpoints[$endpointId]['requests'][$videoId];
+
+        $videoSize = $this->videoList[$videoId];
+
+        asort($caches);
+
+        if ($videoRequestByEndpointId >= $videoAvg) {
+            foreach ($caches as $cacheId => $latency) {
+                if ($cacheCapacity[$cacheId] >= $videoSize
+                    && !in_array($videoId, $endVideos)
+                ) {
+                    return $cacheId;
+                }
+            }
+        }
+
+        return null;
+    }
+
+
+    /**
+     * Get endpoint IDS by video ID
+     *
+     * @param $videoId
+     * @return array
+     */
+    protected function getEndpointIdsByVideoId($videoId)
+    {
+        $endpointsIds = [];
+
+        $endpoints = $this->endPointList;
+
+        foreach ($endpoints as $endpointId => $endpointData) {
+            if (array_key_exists($videoId, $endpointData['requests'])) {
+                $endpointsIds[] = $endpointId;
+            }
+        }
+
+        return $endpointsIds;
+    }
+
+    protected function getMostPopularVideos()
+    {
+        $endpoints = $this->endPointList;
+
+        $videoRanking = [];
+
+        foreach ($endpoints as $endpointId => $endpointData) {
+            $endpointVideos = $endpointData['requests'];
+            foreach ($endpointVideos as $videoId => $requestsCount) {
+                if (!isset($videoRanking[$videoId])) {
+                    $videoRanking[$videoId] = 0;
+                }
+
+                $videoRanking[$videoId] += $requestsCount;
+            }
+        }
+
+        arsort($videoRanking);
+
+        return $videoRanking;
+    }
+
+    /**
+     * video avg requests
+     *
+     * @return array
+     */
+    protected function getVideosAvgRequest()
+    {
+        $endpoints = $this->endPointList;
+
+        $videoRequests = [];
+        foreach ($endpoints as $endpointId => $endpointData) {
+            $endpointVideos = $endpointData['requests'];
+
+            foreach ($endpointVideos as $videoId => $requestsCount) {
+                if (!isset($videoRequests[$videoId])) {
+                    $videoRequests[$videoId] = [];
+                }
+
+                $videoRequests[$videoId][] = $requestsCount;
+
+            }
+        }
+
+        $videoAvg = [];
+
+        foreach ($videoRequests as $videoId => $requests) {
+            $videoAvg[$videoId] = count($requests)
+                ? array_sum($requests) / count($requests)
+                : 0;
+        }
+
+        return $videoAvg;
     }
 
     /**
