@@ -101,6 +101,36 @@ class Balancer
       }
     }
 
+    public function bonuses()
+    {
+      $pairs = [];
+      foreach ($this->endPointList as $eID => $e) {
+        $latDC = $e['latencyDataCenter'];
+        foreach ($e['requests'] as $vID => $num) {
+          foreach ($e['cache'] as $cID => $lat) {
+            $key = $cID . ':' . $vID;
+            if (!array_key_exists($key, $pairs)) {
+              $pairs[$key] = 0;
+            }
+            $bonus = $latDC - $lat;
+            $pairs[$key] += $num * $bonus;
+          }
+        }
+      }
+      uasort($pairs, function($a, $b) {
+        if ($a == $b) {
+          return 0;
+        }
+        return $a < $b ? 1 : -1;
+      });
+      foreach ($pairs as $key => $pair) {
+        list($cID, $vID) = explode(':', $key);
+        if (!$this->exists($cID, $vID) && $this->isOk($cID, $vID)) {
+          $this->add($cID, $vID);
+        }
+      }
+    }
+
     /**
      * Push The Tempo
      */
