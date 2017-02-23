@@ -45,7 +45,7 @@ class Balancer
      *
      * // cacheID => [videoID]
      *
-     * [  => [1, 2], 1 => [2, 4]]
+     * [0 => [1, 2], 1 => [2, 4]]
      *
      * @var array
      */
