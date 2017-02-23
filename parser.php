@@ -9,7 +9,7 @@ function getData($filename = "me_at_the_zoo.in")
         $arr[] = explode(' ', $rawRow);
     }
     
-    list($V,$E,$R,$cacheCount,$cacheSize) = $arr[0];
+    list($V,$E,$R,$cacheCount,$cacheCapacity) = $arr[0];
     $videos = array_map('intval',$arr[1]);
     
     $endpoints = array();
@@ -43,7 +43,7 @@ function getData($filename = "me_at_the_zoo.in")
         $currentRow++;
     }
 
-    return array('endpoints' => $endpoints, 'videos' => $videos, 'cacheCount' => (int) $cacheCount, 'cacheSize' => (int) $cacheSize);
+    return array('endpoints' => $endpoints, 'videos' => $videos, 'cacheCount' => (int) $cacheCount, 'cacheCapacity' => (int) $cacheCapacity);
 }
 
 var_dump(getData());
