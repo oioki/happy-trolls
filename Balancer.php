@@ -71,6 +71,28 @@ class Balancer
     }
 
     /**
+     * Push The Tempo
+     */
+    public function basicPusher()
+    {
+        $videos = $this->videoList;
+        $result = [];
+
+        for ($cacheId = 0; $cacheId < $this->cacheCount; ++$cacheId) {
+            $freeCapacity = $this->cacheCapacity;
+
+            for ($videoId = 0; $videoId < $videos; ++$videoId) {
+                if ($freeCapacity >= $videos[$videoId]) {
+                    $result[$cacheId][] = $videoId;
+                    $freeCapacity -= $videos[$videoId];
+                }
+            }
+        }
+
+        $this->result = $result;
+    }
+
+    /**
      * @return array
      */
     public function getResult()
