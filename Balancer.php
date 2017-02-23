@@ -76,17 +76,19 @@ class Balancer
     public function basicPusher()
     {
         $videos = $this->videoList;
+        $videoIdStart = 0;
         $result = [];
 
         for ($cacheId = 0; $cacheId < $this->cacheCount; ++$cacheId) {
             $freeCapacity = $this->cacheCapacity;
 
-            for ($videoId = 0; $videoId < count($videos); ++$videoId) {
+            for ($videoId = $videoIdStart; $videoId < count($videos); ++$videoId) {
                 if ($freeCapacity >= $videos[$videoId]) {
                     $result[$cacheId][] = $videoId;
                     $freeCapacity -= $videos[$videoId];
                 }
             }
+            $videoIdStart += $videoId;
         }
 
         $this->result = $result;
