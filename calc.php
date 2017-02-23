@@ -78,6 +78,6 @@ class Calculator
             }
         }
 
-        return round($score / $requests, 2) * 1000;
+        return (int)($score / $requests * 1000);
     }
 }
