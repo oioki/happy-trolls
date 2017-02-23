@@ -45,5 +45,3 @@ function getData($filename = "me_at_the_zoo.in")
 
     return array('endpoints' => $endpoints, 'videos' => $videos, 'cacheCount' => (int) $cacheCount, 'cacheCapacity' => (int) $cacheCapacity);
 }
-
-var_dump(getData());
